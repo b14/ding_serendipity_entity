@@ -1,0 +1,297 @@
+<?php
+// $id$
+
+/**
+ * @file
+ *  Serendipity for enities.
+ *
+ *  This module provides Serendipity for entity pages and lists.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function ding_serendipity_entity_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/content_types';
+  }
+}
+
+/**
+ * implements hook_serendipity_info()
+ */
+function ding_serendipity_entity_serendipity_info() {
+  return array(
+    'ting_object_author' => array(
+      'title' => 'Ting object by author',
+      'description' => 'This callback provides ting objects based on the Author and subjects of the active ting object',
+      'keys' => array('ting_object_id'),
+    ),
+    'ting_object_subject' => array(
+      'title' => 'Ting object by subject',
+      'description' => 'This callback provides ting objects based on the subjects of the active ting object',
+      'keys' => array('ting_object_id'),
+    ),
+    'ting_object_type' => array(
+      'title' => 'Ting object by type',
+      'description' => 'This callback provides ting objects based on the type of the active ting object',
+      'keys' => array('ting_object_id'),
+    ),
+    'ting_object_publisher' => array(
+      'title' => 'Ting object by publisher',
+      'description' => 'This callback provides ting objects based on the publisher of the active ting object',
+      'keys' => array('ting_object_id'),
+    ),
+    'related_material' => array(
+      'title' => 'Node related material',
+      'description' => 'This callback returns Ting objects linked to through the node reference field "field_related_content"',
+      'keys' => array('node_nid', 'material'),
+    ),
+    'related_content' => array(
+      'title' => 'Node related content',
+      'description' => 'This callback returns items linked to through the ting reference field "field_materials"',
+      'keys' => array('node_nid', 'content'),
+    ),
+  );
+}
+
+/**
+ * Ding Serendipity function for ting objects.
+ * This function parses the creator and subjects attached to an object from "Ting" and searches for similar objects.
+ * 
+ * @context array
+ *  Serendipity context array
+ *
+ * @return array
+ *  Array of results, each result should contain a type and an id key.
+ *  - Type is the entity Type.
+ *  - id the entity id.
+ */
+function ding_serendipity_entity_ting_object_author_serendipity_add($context) {
+  $results = array();
+  // Ensure that the active page is a ting_object
+  if (!isset($context['ting_object_id']))
+    return $results;
+  
+  // Load object
+  $obj = ding_entity_load($context['ting_object_id'], 'ting_object');
+  
+  // Set the creator if such entry exists
+  $creators = $obj->getCreators();
+  if (empty($creators))
+    return $results;
+  
+  $creator = implode(' AND ', $creators);
+  $query = '(' . $creator . ')';
+  
+  if ($creator)
+    $results = ding_serendipity_do_search($query);
+  
+  // Remove current item if it is in the result list
+  foreach ($results as $key => $item) {
+    if ($item['id'] == $context['ting_object_id']) {
+      unset($results[$key]);
+    }
+  }
+  return $results;
+}
+
+/**
+ * Ding Serendipity function for ting objects.
+ * This function parses the subjects attached to an object from "Ting" and searches for similar objects.
+ * 
+ * @context array
+ *  Serendipity context array
+ *
+ * @return array
+ *  Array of results, each result should contain a type and an id key.
+ *  - Type is the entity Type.
+ *  - id the entity id.
+ */
+function ding_serendipity_entity_ting_object_subject_serendipity_add($context) {
+  $results = array();
+  
+  // Ensure that the active page is a ting_object
+  if (!isset($context['ting_object_id']))
+    return $results;
+  
+  // Load object
+  $obj = ding_entity_load($context['ting_object_id'], 'ting_object');
+  
+  // Build subject array
+  $subject = $obj->getSubjects();
+  
+  // Create the query
+  foreach ($subject as &$facet) {
+    $facet = 'facet.subject="' . $facet . '"';
+  }
+  // Search with only subjects
+  $subject_query = implode(' OR ', $subject);
+  $results = ding_serendipity_do_search($subject_query);
+  
+  // Remove current item if it is in the result list
+  foreach ($results as $key => $item) {
+    if ($item['id'] == $context['ting_object_id']) {
+      unset($results[$key]);
+    }
+  }
+  return $results;
+}
+
+/**
+ * Ding Serendipity function for ting objects.
+ * This function parses the type of an object from "Ting" and searches for similar objects.
+ * 
+ * @context array
+ *  Serendipity context array
+ *
+ * @return array
+ *  Array of results, each result should contain a type and an id key.
+ *  - Type is the entity Type.
+ *  - id the entity id.
+ */
+function ding_serendipity_entity_ting_object_type_serendipity_add($context) {
+  $results = array();
+  // Ensure that the active page is a ting_object
+  if (!isset($context['ting_object_id']))
+    return $results;
+  
+  // Load object
+  $obj = ding_entity_load($context['ting_object_id'], 'ting_object');
+  
+  // Set the creator if such entry exists
+  $type = $obj->getType();
+  if (empty($type) || $type == 'bog') {
+    return $results;
+  }
+  $query = 'facet.type="' . $obj->getType() . '"';
+  $results = ding_serendipity_do_search($query, array('count' => 4));
+  
+  // Remove current item if it is in the result list
+  foreach ($results as $key => $item) {
+    if ($item['id'] == $context['ting_object_id']) {
+      unset($results[$key]);
+    }
+  }
+  return $results;
+}
+
+/**
+ * Ding Serendipity function for ting objects.
+ * This function parses the type of an object from "Ting" and searches for similar objects.
+ * 
+ * @context array
+ *  Serendipity context array
+ *
+ * @return array
+ *  Array of results, each result should contain a type and an id key.
+ *  - Type is the entity Type.
+ *  - id the entity id.
+ */
+function ding_serendipity_entity_ting_object_publisher_serendipity_add($context) {
+  $results = array();
+  // Ensure that the active page is a ting_object
+  if (!isset($context['ting_object_id']))
+    return $results;
+  
+  // Load object
+  $obj = ding_entity_load($context['ting_object_id'], 'ting_object');
+  
+  // Set the creator if such entry exists
+  $publisher = $obj->getPublisher();
+  if (!$publisher)
+    return $results;
+  
+  $query = 'facet.publisher="' . $publisher . '"';
+  $results = ding_serendipity_do_search($query, array('count' => 4));
+  
+  // Remove current item if it is in the result list
+  foreach ($results as $key => $item) {
+    if ($item['id'] == $context['ting_object_id']) {
+      unset($results[$key]);
+    }
+  }
+  
+  return $results;
+}
+
+/**
+ * Ding Serendipity function for nodes related material.
+ * The content returned by this function is loaded from dda.
+ * 
+ * @context array
+ *  Serendipity context array
+ *
+ * @return array
+ *  Array of results, each result should contain a type and an id key.
+ *  - Type is the entity Type.
+ *  - id the entity id.
+ */
+function ding_serendipity_entity_related_material_serendipity_add($context) {
+  $results = array();
+  // Ensure that the context is set.
+  if (!is_numeric($context['node_nid']))
+    return array();
+  
+  // Load node
+  $node = node_load($context['node_nid']);
+  // Get relations to ting_objects through ting_reference
+  if (!empty($node->field_materials)) {
+    $relations = ting_reference_get_relations('node', $node);
+    if (!empty($relations)) {
+      $etids = array();
+      // Get all id's for processing
+      foreach ($relations as $relation) {
+        $etids[] = $relation->endpoints['und'][1]['entity_id'];
+      }
+      // Load ting_objects related to the entity id's.
+      $ting_objects = entity_load('ting_object', $etids);
+      foreach ($ting_objects as $obj) {
+        $results[] = array('type' => 'ting_object', 'id' => $obj->ding_entity_id, 'weight' => 50);
+      }
+    }
+  }
+  return $results;
+}
+
+/**
+ * Ding Serendipity function for nodes related content.
+ * The content returned by this function consists of nodes from the site.
+ * 
+ * @context array
+ *  Serendipity context array
+ *
+ * @return array
+ *  Array of results, each result should contain a type and an id key.
+ *  - Type is the entity Type.
+ *  - id the entity id.
+ */
+function ding_serendipity_entity_related_content_serendipity_add($context) {
+  $results = array();
+  // Ensure that the context is set.
+  if (!is_numeric($context['node_nid']))
+    return array();
+  
+  // Load node.
+  $node = node_load($context['node_nid']);
+  // Get the related content field.
+  $content = field_get_items('node', $node, 'field_related_content');
+  if (!empty($content)) {
+    // Iterate through the items.
+    foreach ($content as $item) {
+      // Add it to the results
+      $results[] = array('type' => 'node', 'id' => $item['target_id'], 'weight' => 50);
+    }
+  }
+  if (!empty($node->field_use_serendipity)) {
+    $val = $node->field_use_serendipity[field_language('node', $node, 'field_use_serendipity')][0]['value'];
+    if ($val) {
+      return $results;
+    }
+  }
+  $similar_nodes = similarterms_list('all', $node->nid);
+  foreach ($similar_nodes as $snode) {
+    $results[] = array('type' => 'node', 'id' => $snode->nid);
+  }
+  return $results;
+}
