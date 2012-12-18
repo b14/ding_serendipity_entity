@@ -70,14 +70,14 @@ function ding_serendipity_entity_inspiration_list_content_type_render($subtype, 
   );
   $limit = !empty($conf['limit']) ? $conf['limit'] : 4;
   $content = array(
-    '#theme' => 'ding_list',
+    '#theme' => 'ding_tabs',
     '#name' => 'related_material',
     '#title' => t('Related material'),
     '#navigation' => 'My navigation',
     '#tabs' => array(
       'object' => array(
         '#title' => 'Related material',
-        '#theme' => 'ding_list_content',
+        '#theme' => 'ding_tabs_content',
         '#type' => 'serendipity',
         '#ajax' => TRUE,
         '#options' => array(
