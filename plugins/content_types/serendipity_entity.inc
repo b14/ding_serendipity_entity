@@ -7,19 +7,19 @@
  */
 
 $plugin = array(
-  'title' => t('Ding serendipity entity'),
+  'title' => t('Ding serendipity ting entity'),
   'description' => t('Provide serendipity based on entities.'),
-  'admin info' => 'ding_serendipity_entity_admin_info',
+  'admin info' => 'ding_serendipity_ting_entity_admin_info',
   'single' => TRUE,
-  'edit form' => 'ding_serendipity_entity_serendipity_entity_content_type_edit_form',
-  'render callback' => 'ding_serendipity_entity_type_render',
+  'edit form' => 'ding_serendipity_ting_entity_serendipity_entity_content_type_edit_form',
+  'render callback' => 'ding_serendipity_ting_entity_type_render',
   'category' => t('Ding!'),
 );
 
 /**
  * Returns a summary for the administration information in panels.
  */
-function ding_serendipity_entity_admin_info($subtype, $conf, $context) {
+function ding_serendipity_ting_entity_admin_info($subtype, $conf, $context) {
   $output = new stdClass();
   $output->title = t('Serendipity');
   $output->content = t('Serendipity content. View mode: @view_mode', array('@view_mode' => $conf['view_mode']));
@@ -33,7 +33,7 @@ function ding_serendipity_entity_admin_info($subtype, $conf, $context) {
 /**
  * Implements hook_content_type_edit_form().
  */
-function ding_serendipity_entity_serendipity_entity_content_type_edit_form($form, &$form_state) {
+function ding_serendipity_ting_entity_serendipity_entity_content_type_edit_form($form, &$form_state) {
   module_load_include('inc', 'ding_serendipity', 'plugins/content_types/serendipity');
   $form += ding_serendipity_form_base($form_state);
   $form['entity_type'] = array(
@@ -70,14 +70,14 @@ function ding_serendipity_entity_serendipity_entity_content_type_edit_form($form
 /**
  * Implements hook_content_type_edit_form_validate().
  */
-function ding_serendipity_entity_serendipity_entity_content_type_edit_form_validate($form, &$form_state) {
+function ding_serendipity_ting_entity_serendipity_entity_content_type_edit_form_validate($form, &$form_state) {
   
 }
 
 /**
  * Implements hook_content_type_edit_form_submit().
  */
-function ding_serendipity_entity_serendipity_entity_content_type_edit_form_submit($form, &$form_state) {
+function ding_serendipity_ting_entity_serendipity_entity_content_type_edit_form_submit($form, &$form_state) {
   $form_state['conf']['view_mode'] = isset($form_state['values']['view_mode']) ? $form_state['values']['view_mode'] : 'big_teaser';
   $form_state['conf']['sort_weight'] = isset($form_state['values']['sort_weight']) ? $form_state['values']['sort_weight'] : FALSE;
   $form_state['conf']['max'] = isset($form_state['values']['max']) ? $form_state['values']['max'] : 3;
@@ -90,7 +90,7 @@ function ding_serendipity_entity_serendipity_entity_content_type_edit_form_submi
 }
 
 
-function ding_serendipity_entity_type_render($subtype, $conf, $args, $context) {
+function ding_serendipity_ting_entity_type_render($subtype, $conf, $args, $context) {
   if ($conf['entity_type'] == 'node') {
     $node = node_load($args[0]);
     $conf['bundle'] = $node->type;
